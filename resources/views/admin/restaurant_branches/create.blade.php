@@ -1,0 +1,452 @@
+@extends('layouts.admin')
+
+@section('css')
+   <style type="text/css">
+    .timing_heading{padding: 10px; font-size: 15px; text-align:center; font-weight: 600; background: #e5e5e5}
+    .restaurant_branch_working_hours_tbl tr td input{background: #eee; border: none; padding: 5px 20px;}
+    #monday_onoff, #tuesday_onoff, #wednesday_onoff, #thursday_onoff, #friday_onoff, #saturday_onoff, #sunday_onoff { background: #eee; border: none; padding: 7px 20px; }
+    /*.rezervation_capacity{width:100px;}*/
+   </style>
+@endsection
+
+@section('content')
+  <section class="content-header">
+    <h1>
+      {{ trans('restaurant_branches.add_new') }}
+    </h1>
+    <ol class="breadcrumb">
+      <li>
+        <a href="{{route('home')}}">
+          <i class="fa fa-dashboard"></i>{{ trans('common.home') }}
+        </a>
+      </li>
+      <li>
+        <a href="{{route('restaurant_branches.index')}}">{{trans('restaurant_branches.singular')}}</a>
+      </li>
+      <li class="active">
+        {{ trans('restaurant_branches.add_new') }}
+      </li>
+    </ol>
+  </section>
+  <section class="content">
+    @if ($errors->any())
+    <div class="alert alert-danger">
+      <b>{{trans('common.whoops')}}</b>
+      <ul>
+        @foreach ($errors->all() as $error)
+          <li>{{ $error }}</li>
+        @endforeach
+      </ul>
+    </div>
+    @endif
+    <div class="row">
+      <div class="col-md-12">
+        <div class="box">
+          <div class="box-header with-border">
+            <h3 class="box-title">{{ trans('restaurant_branches.details') }}</h3>
+            @can('restaurant-list')
+            <ul class="pull-right">
+                <a href="{{route('restaurant_branches.index')}}" class="btn btn-danger">
+                    <i class="fa fa-arrow-left"></i>
+                    {{ trans('common.back') }}
+                </a>
+            </ul>
+            @endcan
+          </div>
+          <div class="box-body">
+            <form method="POST" id="message_templateForm" action="{{route('restaurant_branches.store')}}" accept-charset="UTF-8" enctype="multipart/form-data">
+              @csrf
+              <div class="model-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <ul class="nav nav-tabs" role="tablist">
+                      @foreach(config('app.locales') as $lk=>$lv)
+                        <li role="presentation" class="@if($lk=='en') active @endif">
+                          <a href="#abc_{{$lk}}" aria-controls="" role="tab" data-toggle="tab" aria-expanded="true">
+                                    {{$lv['name']}}
+                          </a>
+                        </li>  
+                      @endforeach
+                    </ul>
+                    <div class="tab-content" style="margin-top: 10px;">
+                      @foreach(config('app.locales') as $lk=>$lv)
+                        <div role="tabpanel" class="tab-pane @if($lk=='en') active @endif" id="abc_{{$lk}}">
+                          <div class="form-group">
+                            <label for="name:{{$lk}}" class="content-label">{{trans('restaurant_branches.name')}}</label>
+                            <input class="form-control"  placeholder="{{trans('restaurant_branches.name')}}" name="name:{{$lk}}" id="name:{{$lk}}" type="text" value="{{old('name:'.$lk)}}" required>
+                            <strong class="help-block"></strong>
+                          </div>
+                          <!-- <div class="form-group">
+                            <label for="address:{{$lk}}" class="content-label">{{trans('restaurant_branches.address')}}</label>
+                            <textarea class="form-control" rows="5" placeholder="{{trans('restaurant_branches.address')}}" name="address:{{$lk}}" id="address:{{$lk}}" required>{{old('address:'.$lk)}}</textarea>
+
+
+                            <strong class="help-block"></strong>
+                          </div> -->
+                        </div>    
+
+                      @endforeach
+                    </div>
+                    <div class="form-group">
+                        <label for="address_autocom" class="content-label">{{trans('restaurant_branches.address')}}</label>
+                        <input class="form-control"  placeholder="{{trans('restaurant_branches.address')}}" name="address_autocom" id="address_autocom" type="text" value="{{old('address_autocom')}}" required>
+                        <input type="hidden" name="latitude">
+                        <input type="hidden" name="longitude">
+                        <strong class="help-block"></strong>
+                    </div>
+                    <div class="form-group">
+                        <label for="country" class="content-label">{{trans('restaurant_branches.country')}}</label>
+                        <input class="form-control"  placeholder="{{trans('restaurant_branches.country')}}" name="country" id="country" type="text" value="{{old('country')}}" required readonly>
+                        <strong class="help-block"></strong>
+                    </div>
+                    <div class="form-group">
+                        <label for="state" class="content-label">{{trans('restaurant_branches.state')}}</label>
+                        <input class="form-control"  placeholder="{{trans('restaurant_branches.state')}}" name="state" id="state" type="text" value="{{old('state')}}" required readonly>
+                        <strong class="help-block"></strong>
+                    </div>
+                    <input type="hidden" name="city" id="city">
+                    <div class="form-group">
+                      <label for="cuisines" class="content-label">
+                        {{trans('restaurant_branches.restaurant')}}
+                      </label>
+                      <select class="form-control select2" id="restaurant" name="restaurant_id" data-placeholder="{{trans('restaurant_branches.select_restaurant')}}" required>
+                        <option value="">{{trans('restaurant_branches.select_restaurant')}}
+                        </option>
+                        @foreach($restaurants as $restaurant)
+                        <option value="{{$restaurant->id}}"
+                          {{ ((old('restaurant_id') == $restaurant->id)) ? 'selected':'' }}
+                          >{{$restaurant->name}}
+                        </option>
+                        @endforeach
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    
+                    <div class="form-group">
+                        <label for="total_seats" class="content-label">{{trans('restaurant_branches.total_seats')}}</label>
+                          <input class="form-control"  placeholder="{{trans('restaurant_branches.total_seats')}}" name="total_seats" id="total_seats" type="number" value="{{old('total_seats')}}" required>
+                        <strong class="help-block"></strong>
+                    </div>
+
+                    <!-- <div class="form-group">
+                        <label for="available_seats" class="content-label">{{trans('restaurant_branches.available_seats')}}</label>
+                          <input class="form-control"  placeholder="{{trans('restaurant_branches.available_seats')}}" name="available_seats" id="available_seats" type="number" value="{{old('available_seats')}}" required>
+                        <strong class="help-block"></strong>
+                    </div> -->
+
+                    <div class="form-group">
+                      <label for="seating_area" class="content-label">
+                        {{trans('seating_area.singular')}}
+                      </label>
+                      <select class="form-control select2" id="seating_area" name="stg_area_id[]" multiple data-placeholder="{{trans('seating_area.select_seating_area')}}" required>
+                        <option value="">{{trans('seating_area.select_seating_area')}}
+                        </option>
+                        @foreach($seating_areas as $seating_area)
+                        <option value="{{$seating_area->id}}"
+                          {{ (collect(old('stg_area_id'))->contains($seating_area->id)) ? 'selected':'' }}
+                          >{{$seating_area->name}}
+                        </option>
+                        @endforeach
+                      </select>
+                    </div>
+
+                    <!-- <div class="form-group">
+                      <label for="country" class="content-label">
+                        {{trans('restaurant_branches.country')}}
+                      </label>
+                      <select class="form-control select2" id="country" name="country_id" data-placeholder="{{trans('restaurant_branches.select_country')}}" required>
+                        <option value="">{{trans('restaurant_branches.select_country')}}
+                        </option>
+                        @foreach($countries as $country)
+                        <option value="{{$country->id}}"
+                          {{ ((old('restaurant_id') == $country->id)) ? 'selected':'' }}
+                          >{{$country->country_name}}
+                        </option>
+                        @endforeach
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="state" class="content-label">
+                        {{trans('restaurant_branches.state')}}
+                      </label>
+                      <select class="form-control select2" id="state" name="state_id" data-placeholder="{{trans('restaurant_branches.select_state')}}" required>
+                        <option value="">{{trans('restaurant_branches.select_state')}}
+                        </option>
+                        
+                      </select>
+                    </div> -->
+                    
+                    <div class="form-group">
+                      <label for="status" class="content-label">{{trans('common.status')}}</label>
+                      <select class="form-control" name="status" id="status" required>
+                        <option value="active" 
+                          @if(old('status') == 'active') selected @endif>
+                          {{trans('common.active')}}
+                        </option>
+                        <option value="inactive" 
+                          @if(old('status') == 'inactive') selected @endif>
+                          {{trans('common.inactive')}}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              <div class="modal-footer">
+                <button id="submit_btn" type="submit" class="btn btn-danger btn-fill btn-wd">{{trans('Submit')}}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+@endsection
+<!-- <script src="{{ asset('admin/bower_components/ckeditor/ckeditor.js') }}"></script> -->
+@section('js')
+<script>
+    // CKEDITOR.replaceAll();
+</script>
+
+<script>
+    //Initialize Select2 Elements
+    $('.select2').select2();
+
+
+    // WHEN CLICK 'For all'
+        $('#from_to_for_all').click(function(){
+            var fa_from = $('#1_from').val();
+            var fa_to = $('#1_to').val();
+            var fa_reservations_capacity = $('#1_reservations_capacity').val();
+            $('#2_from,#3_from,#4_from,#5_from').val(fa_from);
+            $('#2_to,#3_to,#4_to,#5_to').val(fa_to);
+            $('#2_reservations_capacity,#3_reservations_capacity,#4_reservations_capacity,#5_reservations_capacity').val(fa_reservations_capacity);
+            $('#monday_onoff,#tuesday_onoff,#wednesday_onoff,#thursday_onoff,#friday_onoff').val('on');
+        })
+
+        // monday_onoff DropDown List
+        $('#monday_onoff').change(function(){
+            if($(this).val() == 'on'){
+                var fa_from = $('#1_from').val();
+                var fa_to = $('#1_to').val();
+                var fa_reservations_capacity = $('#1_reservations_capacity').val();
+                $('#1_from').val(fa_from);
+                $('#1_to').val(fa_to);
+                $('#1_reservations_capacity').val(fa_reservations_capacity);
+                $('#1_from, #1_to').attr('required','required');
+            }else{
+                $('#1_from').val('');
+                $('#1_to').val('');
+                $('#1_reservations_capacity').val('');
+                $('#1_from, #1_to').removeAttr('required');
+            }
+        })
+
+        // tuesday_onoff DropDown List
+        $('#tuesday_onoff').change(function(){
+            if($(this).val() == 'on'){
+                var fa_from = $('#1_from').val();
+                var fa_to = $('#1_to').val();
+                var fa_reservations_capacity = $('#1_reservations_capacity').val();
+                $('#2_from').val(fa_from);
+                $('#2_to').val(fa_to);
+                $('#2_reservations_capacity').val(fa_reservations_capacity);
+                $('#2_from, #2_to').attr('required','required');
+            }else{
+                $('#2_from').val('');
+                $('#2_to').val('');
+                $('#2_reservations_capacity').val('');
+                $('#2_from, #2_to').removeAttr('required');
+            }
+        })
+
+        // wednesday_onoff DropDown List
+        $('#wednesday_onoff').change(function(){
+            if($(this).val() == 'on'){
+                var fa_from = $('#1_from').val();
+                var fa_to = $('#1_to').val();
+                var fa_reservations_capacity = $('#1_reservations_capacity').val();
+                $('#3_from').val(fa_from);
+                $('#3_to').val(fa_to);
+                $('#3_reservations_capacity').val(fa_reservations_capacity);
+                $('#3_from, #3_to').attr('required','required');
+            }else{
+                $('#3_from').val('');
+                $('#3_to').val('');
+                $('#3_reservations_capacity').val('');
+                $('#3_from, #3_to').removeAttr('required');
+            }
+        })
+
+        // thursday_onoff DropDown List
+        $('#thursday_onoff').change(function(){
+            if($(this).val() == 'on'){
+                var fa_from = $('#1_from').val();
+                var fa_to = $('#1_to').val();
+                var fa_reservations_capacity = $('#1_reservations_capacity').val();
+                $('#4_from').val(fa_from);
+                $('#4_to').val(fa_to);
+                $('#4_reservations_capacity').val(fa_reservations_capacity);
+                $('#4_from, #4_to').attr('required','required');
+            }else{
+                $('#4_from').val('');
+                $('#4_to').val('');
+                $('#4_reservations_capacity').val('');
+                $('#4_from, #4_to').removeAttr('required');
+            }
+        })
+
+        // friday_onoff DropDown List
+        $('#friday_onoff').change(function(){
+            if($(this).val() == 'on'){
+                var fa_from = $('#1_from').val();
+                var fa_to = $('#1_to').val();
+                var fa_reservations_capacity = $('#1_reservations_capacity').val();
+                $('#5_from').val(fa_from);
+                $('#5_to').val(fa_to);
+                $('#5_reservations_capacity').val(fa_reservations_capacity);
+                $('#5_from, #5_to').attr('required','required');
+            }else{
+                $('#5_from').val('');
+                $('#5_to').val('');
+                $('#5_reservations_capacity').val('');
+                $('#5_from, #5_to').removeAttr('required');
+            }
+        })
+
+        // saturday_onoff DropDown List
+        $('#saturday_onoff').change(function(){
+            if($(this).val() == 'on'){
+                var fa_from = $('#1_from').val();
+                var fa_to = $('#1_to').val();
+                var fa_reservations_capacity = $('#1_reservations_capacity').val();
+                $('#6_from').val(fa_from);
+                $('#6_to').val(fa_to);
+                $('#6_reservations_capacity').val(fa_reservations_capacity);
+                $('#6_from, #6_to').attr('required','required');
+            }else{
+                $('#6_from').val('');
+                $('#6_to').val('');
+                $('#6_reservations_capacity').val('');
+                $('#6_from, #6_to').removeAttr('required');
+            }
+        })
+
+        // SUNDAY_onoff DropDown List
+        $('#sunday_onoff').change(function(){
+            if($(this).val() == 'on'){
+                var fa_from = $('#1_from').val();
+                var fa_to = $('#1_to').val();
+                var fa_reservations_capacity = $('#1_reservations_capacity').val();
+                $('#0_from').val(fa_from);
+                $('#0_to').val(fa_to);
+                $('#0_reservations_capacity').val(fa_reservations_capacity);
+                $('#0_from, #0_to').attr('required','required');
+            }else{
+                $('#0_from').val('');
+                $('#0_to').val('');
+                $('#0_reservations_capacity').val('');
+                $('#0_from, #0_to').removeAttr('required');
+            }
+        })
+
+        $(document).ready(function() {
+            // WHEN CLICK ON OFF DAY From and To hours
+            $('[id=1_from]').click(function(){
+                console.log($(this).val());
+            })
+            $('[id$=_from]').keypress(function(){
+                $(this).parent().prev().children('select').val('on');
+            })
+        })
+</script>
+
+<script>
+  $(document).ready(function(){
+    if($('#monday_onoff').val() == 'on'){
+      $('#1_from, #1_to').attr('required','required');
+    }
+    if($('#tuesday_onoff').val() == 'on'){
+      $('#2_from, #2_to').attr('required','required');
+    }
+    if($('#wednesday_onoff').val() == 'on'){
+      $('#3_from, #3_to').attr('required','required');
+    }
+    if($('#thursday_onoff').val() == 'on'){
+      $('#4_from, #4_to').attr('required','required');
+    }
+    if($('#friday_onoff').val() == 'on'){
+      $('#5_from, #5_to').attr('required','required');
+    }
+    if($('#saturday_onoff').val() == 'on'){
+      $('#6_from, #6_to').attr('required','required');
+    }
+    if($('#sunday_onoff').val() == 'on'){
+      $('#0_from, #0_to').attr('required','required');
+    }
+  })
+  // $('#submit_btn').click(function() {
+  //   if($('#monday_onoff').val() == 'on'){
+  //     $('#1_from').
+  //   }
+  // })
+</script>
+
+
+<script src="{{ asset('admin/plugins/bootstrap-switch/js/bootstrap-switch.min.js') }}"></script>
+<script>
+  $("input[data-bootstrap-switch]").each(function(){
+      $(this).bootstrapSwitch('state', $(this).prop('checked'));
+    });
+  $(document).on('change','#country',function(){
+        var country = $(this).val();
+        var id = $(this).attr('id');
+        var delay = 500;
+        var element = $(this);
+        $.ajax({
+            type:'post',
+            url: "{{route('get_states_by_country')}}",
+            data: {
+                    "country": country, 
+                    "id" : id,  
+                    "_token": "{{ csrf_token() }}"
+            },
+            success: function (data) {
+              var states = JSON.parse(data);
+              $("#state").html('<option value="">{{trans("restaurant_branches.select_state")}}                     </option>');
+              $.each(states,function(key, val){
+                $("#state").append("<option value='"+val.id+"'>"+val.name+"</option>");
+              })
+              console.log(data);
+            },
+            error: function () {
+              toastr.error(data.error);
+            }
+        })
+    })
+</script>
+
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPRQ6zO6df5JlMRnLvEAAqfg1UWw_T8Os&libraries=places"></script>
+<script>
+  google.maps.event.addDomListener(window, 'load', initialize);
+      function initialize() {
+        var input = document.getElementById('address_autocom');
+        var autocomplete = new google.maps.places.Autocomplete(input);
+        autocomplete.setFields(['address_component']);
+        autocomplete.addListener('place_changed', function () {
+        var place = autocomplete.getPlace();
+
+        var city = place.address_components[0].long_name;
+        var state = place.address_components[1].long_name;
+        var country = place.address_components[2].long_name;
+        // place variable will have all the information you are looking for.
+        $('#lat').val(place.geometry['location'].lat());
+        $('#long').val(place.geometry['location'].lng());
+        $('#city').val(city);
+        $('#country').val(country);
+        $('#state').val(state);
+      });
+  }
+</script>
+@endsection

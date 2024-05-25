@@ -1,0 +1,20 @@
+# Disable index view
+Options -Indexes
+
+# Hide a specific file
+#<Files .env>
+#    Order allow,deny
+#    Deny from all
+#</Files>
+
+
+<FilesMatch "\.(htaccess|htpasswd|ini|log|sh|inc|bak|env|pem)$">
+Order Allow,Deny
+Deny from all
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteCond %{REQUEST_URI} !^public
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
